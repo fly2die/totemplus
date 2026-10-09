@@ -3,7 +3,7 @@
 	"package": "com.f2d.totemplus.client.mixin",
 	"compatibilityLevel": "JAVA_25",
 	"client": [
-		"ExampleClientMixin"
+		"GameRendererMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

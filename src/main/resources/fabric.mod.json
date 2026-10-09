@@ -8,8 +8,8 @@
 		"Me!"
 	],
 	"contact": {
-		"homepage": "https://fabricmc.net/",
-		"sources": "https://github.com/FabricMC/fabric-example-mod"
+		"homepage": "https://modrinth.com/user/FLY2DIE",
+		"sources": "https://github.com/fly2die/totemplus"
 	},
 	"license": "MIT",
 	"icon": "assets/totemplus/icon.png",
@@ -19,7 +19,7 @@
 			"com.f2d.totemplus.TotemPlus"
 		],
 		"client": [
-			"com.f2d.totemplus.client.TotemClient"
+			"com.f2d.totemplus.client.TotemPlusClient"
 		]
 	},
 	"mixins": [
