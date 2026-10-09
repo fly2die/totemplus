@@ -1,0 +1,38 @@
+{
+	"schemaVersion": 1,
+	"id": "totemplus",
+	"version": "${version}",
+	"name": "Totem+",
+	"description": "This is an example description! Tell everyone what your mod is about!",
+	"authors": [
+		"Me!"
+	],
+	"contact": {
+		"homepage": "https://fabricmc.net/",
+		"sources": "https://github.com/FabricMC/fabric-example-mod"
+	},
+	"license": "MIT",
+	"icon": "assets/totemplus/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			"com.f2d.totemplus.TotemPlus"
+		],
+		"client": [
+			"com.f2d.totemplus.client.TotemClient"
+		]
+	},
+	"mixins": [
+		"totemplus.mixins.json",
+		{
+			"config": "totemplus.client.mixins.json",
+			"environment": "client"
+		}
+	],
+	"depends": {
+		"fabricloader": ">=0.19.5",
+		"minecraft": "~26.3",
+		"java": ">=25",
+		"fabric-api": "*"
+	}
+}
