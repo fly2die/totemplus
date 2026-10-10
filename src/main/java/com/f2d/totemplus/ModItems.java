@@ -1,6 +1,10 @@
 package com.f2d.totemplus;
 
 import com.f2d.totemplus.totems.AngelTotem;
+import com.f2d.totemplus.totems.BerserkerTotem;
+import com.f2d.totemplus.totems.DevilTotem;
+import com.f2d.totemplus.totems.GuardianTotem;
+import com.f2d.totemplus.totems.StormTotem;
 import net.fabricmc.fabric.api.creativetab.v1.CreativeModeTabEvents;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -16,6 +20,7 @@ import java.util.function.Function;
 
 public class ModItems {
 
+    // === Angel Totem ===
     public static final ResourceKey<Item> ANGEL_TOTEM_KEY =
             ResourceKey.create(Registries.ITEM,
                     Identifier.fromNamespaceAndPath(TotemPlus.MOD_ID, "angel_totem"));
@@ -23,6 +28,50 @@ public class ModItems {
     public static final Item ANGEL_TOTEM = register(
             ANGEL_TOTEM_KEY,
             AngelTotem::new,
+            new Item.Properties().stacksTo(1).rarity(Rarity.RARE)
+    );
+
+    // === Devil Totem ===
+    public static final ResourceKey<Item> DEVIL_TOTEM_KEY =
+            ResourceKey.create(Registries.ITEM,
+                    Identifier.fromNamespaceAndPath(TotemPlus.MOD_ID, "devil_totem"));
+
+    public static final Item DEVIL_TOTEM = register(
+            DEVIL_TOTEM_KEY,
+            DevilTotem::new,
+            new Item.Properties().stacksTo(1).rarity(Rarity.RARE)
+    );
+
+    // === Storm Totem ===
+    public static final ResourceKey<Item> STORM_TOTEM_KEY =
+            ResourceKey.create(Registries.ITEM,
+                    Identifier.fromNamespaceAndPath(TotemPlus.MOD_ID, "storm_totem"));
+
+    public static final Item STORM_TOTEM = register(
+            STORM_TOTEM_KEY,
+            StormTotem::new,
+            new Item.Properties().stacksTo(1).rarity(Rarity.RARE)
+    );
+
+    // === Berserker Totem ===
+    public static final ResourceKey<Item> BERSERKER_TOTEM_KEY =
+            ResourceKey.create(Registries.ITEM,
+                    Identifier.fromNamespaceAndPath(TotemPlus.MOD_ID, "berserker_totem"));
+
+    public static final Item BERSERKER_TOTEM = register(
+            BERSERKER_TOTEM_KEY,
+            BerserkerTotem::new,
+            new Item.Properties().stacksTo(1).rarity(Rarity.RARE)
+    );
+
+    // === Guardian Totem ===
+    public static final ResourceKey<Item> GUARDIAN_TOTEM_KEY =
+            ResourceKey.create(Registries.ITEM,
+                    Identifier.fromNamespaceAndPath(TotemPlus.MOD_ID, "guardian_totem"));
+
+    public static final Item GUARDIAN_TOTEM = register(
+            GUARDIAN_TOTEM_KEY,
+            GuardianTotem::new,
             new Item.Properties().stacksTo(1).rarity(Rarity.RARE)
     );
 
@@ -35,6 +84,12 @@ public class ModItems {
 
     public static void initialize() {
         CreativeModeTabEvents.modifyOutputEvent(CreativeModeTabs.COMBAT)
-                .register(output -> output.insertAfter(Items.TOTEM_OF_UNDYING, ANGEL_TOTEM));
+                .register(output -> {
+                    output.insertAfter(Items.TOTEM_OF_UNDYING, ANGEL_TOTEM);
+                    output.insertAfter(ANGEL_TOTEM, DEVIL_TOTEM);
+                    output.insertAfter(DEVIL_TOTEM, STORM_TOTEM);
+                    output.insertAfter(STORM_TOTEM, BERSERKER_TOTEM);
+                    output.insertAfter(BERSERKER_TOTEM, GUARDIAN_TOTEM);
+                });
     }
 }

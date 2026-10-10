@@ -1,3 +1,7 @@
 {
-  "item.totemplus.angel_totem": "Angel Totem"
+  "item.totemplus.angel_totem": "Angel Totem",
+  "item.totemplus.devil_totem": "Devil Totem",
+  "item.totemplus.storm_totem": "Storm Totem",
+  "item.totemplus.berserker_totem": "Berserker Totem",
+  "item.totemplus.guardian_totem": "Guardian Totem"
 }

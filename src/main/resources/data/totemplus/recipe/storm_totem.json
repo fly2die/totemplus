@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "C C",
+    "GTG",
+    "N N"
+  ],
+  "key": {
+    "C": "minecraft:copper_ingot",
+    "G": "minecraft:gold_ingot",
+    "N": "minecraft:copper_nugget",
+    "T": "minecraft:totem_of_undying"
+  },
+  "result": {
+    "id": "totemplus:storm_totem",
+    "count": 1
+  }
+}

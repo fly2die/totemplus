@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "G G",
+    "BTB",
+    " G "
+  ],
+  "key": {
+    "G": "minecraft:gold_ingot",
+    "B": "minecraft:blaze_powder",
+    "T": "minecraft:totem_of_undying"
+  },
+  "result": {
+    "id": "totemplus:devil_totem",
+    "count": 1
+  }
+}

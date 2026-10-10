@@ -23,14 +23,24 @@ public abstract class BaseTotem extends Item {
     protected abstract void onActivate(Player player, ItemStack stack);
 
     /**
+     * Сколько здоровья восстановить при активации тотема.
+     * Возвращает количество HP (2.0 = 1 сердце).
+     * Переопределяется в наследниках.
+     */
+    protected abstract float getHealthOnActivate();
+
+    /**
      * Общая логика активации тотема. Вызывается из TotemPlus.
      */
     public void activate(Player player, ItemStack stack, InteractionHand hand) {
         // 1. Расход тотема
         stack.shrink(1);
 
-        // 2. Восстановление здоровья (иначе смерть на следующем тике)
-        player.setHealth(1.0F);
+        // 2. Восстановление здоровья — своё значение для каждого тотема
+        float health = getHealthOnActivate();
+        // Ограничиваем максимумом здоровья игрока, чтобы не превысить
+        health = Math.min(health, player.getMaxHealth());
+        player.setHealth(health);
 
         // 3. Уникальный эффект конкретного тотема
         onActivate(player, stack);

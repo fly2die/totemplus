@@ -4,6 +4,7 @@ import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -16,56 +17,62 @@ import java.util.List;
 public class AngelTotem extends BaseTotem {
 
     private static final Logger LOGGER = LoggerFactory.getLogger("totemplus/AngelTotem");
-
-    // Радиус действия возмездия (в блоках)
-    private static final double RETRIBUTION_RADIUS = 8.0;
-
-    // Урон, наносимый каждому врагу (в полусердцах; 6.0 = 3 сердца)
-    private static final float RETRIBUTION_DAMAGE = 6.0f;
+    private static final float HEALTH_ON_ACTIVATE = 10.0f;
+    private static final double LEVITATION_RADIUS = 8.0;
+    private static final int LEVITATION_DURATION = 100;
+    private static final int LEVITATION_AMPLIFIER = 1;
 
     public AngelTotem(Properties properties) {
         super(properties);
     }
 
     @Override
+    protected float getHealthOnActivate() {
+        return HEALTH_ON_ACTIVATE;
+    }
+
+    @Override
     protected void onActivate(Player player, ItemStack stack) {
-        // === 1. Баффы самому игроку ===
-        // Сила II на 15 секунд (300 тиков)
+        LOGGER.info("onActivate START for {}", player.getName().getString());
+
+        // Баффы игроку
         player.addEffect(new MobEffectInstance(MobEffects.STRENGTH, 300, 1));
-
-        // Скорость II на 15 секунд
         player.addEffect(new MobEffectInstance(MobEffects.SPEED, 300, 1));
-
-        // Регенерация I на 20 секунд (400 тиков)
         player.addEffect(new MobEffectInstance(MobEffects.REGENERATION, 400, 0));
 
-        // === 2. Возмездие: урон всем враждебным мобам вокруг ===
         if (player.level() instanceof ServerLevel serverLevel) {
-            AABB area = player.getBoundingBox().inflate(RETRIBUTION_RADIUS);
+            // Кубическая зона вокруг игрока по координатам
+            var pos = player.position();
+            AABB area = new AABB(
+                    pos.x - LEVITATION_RADIUS, pos.y - LEVITATION_RADIUS, pos.z - LEVITATION_RADIUS,
+                    pos.x + LEVITATION_RADIUS, pos.y + LEVITATION_RADIUS, pos.z + LEVITATION_RADIUS
+            );
 
-            // Ищем всех враждебных мобов в радиусе
-            List<Monster> enemies = serverLevel.getEntitiesOfClass(Monster.class, area);
+            // Ищем ВСЕХ живых сущностей, кроме игрока
+            List<LivingEntity> entities = serverLevel.getEntitiesOfClass(LivingEntity.class, area);
+            int count = 0;
 
-            for (Monster enemy : enemies) {
-                // Наносим магический урон (как от зелья мгновенного урона)
-                enemy.hurtServer(serverLevel, player.damageSources().magic(), RETRIBUTION_DAMAGE);
+            for (LivingEntity entity : entities) {
+                if (entity instanceof Player) continue; // пропускаем игроков
 
-                // Визуальный эффект вокруг каждого врага — искры
+                entity.addEffect(new MobEffectInstance(
+                        MobEffects.LEVITATION,
+                        LEVITATION_DURATION,
+                        LEVITATION_AMPLIFIER
+                ));
+
                 serverLevel.sendParticles(
-                        ParticleTypes.CRIT,
-                        enemy.getX(),
-                        enemy.getY() + enemy.getBbHeight() * 0.5,
-                        enemy.getZ(),
-                        15,
-                        0.3, 0.3, 0.3,
-                        0.1
+                        ParticleTypes.END_ROD,
+                        entity.getX(),
+                        entity.getY() + entity.getBbHeight() * 0.5,
+                        entity.getZ(),
+                        20, 0.3, 0.5, 0.3, 0.05
                 );
+
+                count++;
             }
 
-            LOGGER.info("Angel Totem retribution hit {} enemies for {}",
-                    enemies.size(), player.getName().getString());
+            LOGGER.info("Levitated {} entities for {}", count, player.getName().getString());
         }
-
-        LOGGER.info("Angel Totem activated for {}!", player.getName().getString());
     }
 }

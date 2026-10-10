@@ -3,9 +3,9 @@
 	"id": "totemplus",
 	"version": "${version}",
 	"name": "Totem+",
-	"description": "This is an example description! Tell everyone what your mod is about!",
+	"description": "New totems with unique effects: from angelic healing to berserker rage. Each activates on lethal damage and grants its own set of abilities.",
 	"authors": [
-		"Me!"
+		"F2D"
 	],
 	"contact": {
 		"homepage": "https://modrinth.com/user/FLY2DIE",
