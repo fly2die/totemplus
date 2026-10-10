@@ -22,13 +22,6 @@
 			"com.f2d.totemplus.client.TotemPlusClient"
 		]
 	},
-	"mixins": [
-		"totemplus.mixins.json",
-		{
-			"config": "totemplus.client.mixins.json",
-			"environment": "client"
-		}
-	],
 	"depends": {
 		"fabricloader": ">=0.19.5",
 		"minecraft": "~26.3",

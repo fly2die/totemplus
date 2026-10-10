@@ -22,7 +22,7 @@ public class ModItems {
 
     public static final Item ANGEL_TOTEM = register(
             ANGEL_TOTEM_KEY,
-            AngelTotem::new,   // ← теперь используем наш класс
+            AngelTotem::new,
             new Item.Properties().stacksTo(1).rarity(Rarity.RARE)
     );
 

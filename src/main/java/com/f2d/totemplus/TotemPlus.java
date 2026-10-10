@@ -22,17 +22,17 @@ public class TotemPlus implements ModInitializer {
 	public void onInitialize() {
 		ModItems.initialize();
 
+		// Активация тотема при смерти
 		ServerLivingEntityEvents.ALLOW_DEATH.register((entity, damageSource, damageAmount) -> {
 			if (!(entity instanceof Player player)) {
 				return true;
 			}
 
-			// Ищем любой BaseTotem в руках
 			for (InteractionHand hand : InteractionHand.values()) {
 				ItemStack stack = player.getItemInHand(hand);
 				if (stack.getItem() instanceof BaseTotem totem) {
 					totem.activate(player, stack, hand);
-					return false; // отменяем смерть
+					return false;
 				}
 			}
 			return true;

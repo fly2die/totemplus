@@ -24,7 +24,6 @@ public abstract class BaseTotem extends Item {
 
     /**
      * Общая логика активации тотема. Вызывается из TotemPlus.
-     * Здесь: расход, здоровье, onActivate, анимация, частицы.
      */
     public void activate(Player player, ItemStack stack, InteractionHand hand) {
         // 1. Расход тотема
