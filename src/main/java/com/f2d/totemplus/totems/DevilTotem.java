@@ -1,97 +1,73 @@
 package com.f2d.totemplus.totems;
 
+import net.minecraft.ChatFormatting;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.phys.AABB;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
+/** Дьявольский тотем: кровавая жатва — урон всем врагам вокруг и лечение за каждого задетого. */
 public class DevilTotem extends BaseTotem {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger("totemplus/DevilTotem");
+    /** 6 HP = 3 сердца. */
+    private static final float HEALTH_ON_ACTIVATE = 6.0F;
 
-    // Сколько здоровья восстанавливается при активации (6.0 = 3 сердца)
-    private static final float HEALTH_ON_ACTIVATE = 6.0f;
+    private static final int BUFF_DURATION = 300;
 
-    // Радиус кровавой жатвы (в блоках)
     private static final double HARVEST_RADIUS = 8.0;
-
-    // Урон, наносимый каждому врагу (в полусердцах; 8.0 = 4 сердца)
-    private static final float HARVEST_DAMAGE = 8.0f;
-
-    // Сколько здоровья восстанавливается за каждого поражённого врага (2.0 = 1 сердце)
-    private static final float HEALTH_PER_KILL = 2.0f;
-
-    // Максимум здоровья, которое можно восстановить жатвой (20.0 = 10 сердец)
-    private static final float MAX_HARVEST_HEAL = 20.0f;
+    /** 8 HP = 4 сердца урона каждому врагу. */
+    private static final float HARVEST_DAMAGE = 8.0F;
+    /** 2 HP = 1 сердце за каждого задетого врага. */
+    private static final float HEALTH_PER_VICTIM = 2.0F;
+    /** Потолок лечения с одной активации: 20 HP = 10 сердец. */
+    private static final float MAX_HARVEST_HEAL = 20.0F;
 
     public DevilTotem(Properties properties) {
-        super(properties);
+        super(properties, HEALTH_ON_ACTIVATE);
     }
 
     @Override
-    protected float getHealthOnActivate() {
-        return HEALTH_ON_ACTIVATE;
-    }
+    protected void onActivate(ServerPlayer player, ServerLevel level) {
+        player.addEffect(new MobEffectInstance(MobEffects.STRENGTH, BUFF_DURATION, 1));
+        player.addEffect(new MobEffectInstance(MobEffects.SPEED, BUFF_DURATION, 1));
 
-    @Override
-    protected void onActivate(Player player, ItemStack stack) {
-        LOGGER.info("Devil Totem onActivate START for {}", player.getName().getString());
+        int victims = 0;
+        for (LivingEntity enemy : enemiesAround(player, level, HARVEST_RADIUS)) {
+            enemy.hurtServer(level, player.damageSources().magic(), HARVEST_DAMAGE);
 
-        // === 1. Баффы самому игроку ===
-        // Сила II на 15 секунд (300 тиков)
-        player.addEffect(new MobEffectInstance(MobEffects.STRENGTH, 300, 1));
-
-        // Скорость II на 15 секунд
-        player.addEffect(new MobEffectInstance(MobEffects.SPEED, 300, 1));
-
-        // === 2. Кровавая жатва ===
-        if (player.level() instanceof ServerLevel serverLevel) {
-            var pos = player.position();
-            AABB area = new AABB(
-                    pos.x - HARVEST_RADIUS, pos.y - HARVEST_RADIUS, pos.z - HARVEST_RADIUS,
-                    pos.x + HARVEST_RADIUS, pos.y + HARVEST_RADIUS, pos.z + HARVEST_RADIUS
+            level.sendParticles(
+                    ParticleTypes.DAMAGE_INDICATOR,
+                    enemy.getX(),
+                    enemy.getY() + enemy.getBbHeight() * 0.5,
+                    enemy.getZ(),
+                    15, 0.3, 0.3, 0.3, 0.1
             );
-
-            List<LivingEntity> entities = serverLevel.getEntitiesOfClass(LivingEntity.class, area);
-            int count = 0;
-
-            for (LivingEntity entity : entities) {
-                if (entity instanceof Player) continue; // пропускаем игроков
-
-                // Наносим магический урон
-                entity.hurtServer(serverLevel, player.damageSources().magic(), HARVEST_DAMAGE);
-
-                // Визуальный эффект — красные частицы вокруг врага
-                serverLevel.sendParticles(
-                        ParticleTypes.DAMAGE_INDICATOR,
-                        entity.getX(),
-                        entity.getY() + entity.getBbHeight() * 0.5,
-                        entity.getZ(),
-                        15, 0.3, 0.3, 0.3, 0.1
-                );
-
-                count++;
-            }
-
-            // === 3. Восстановление здоровья за каждого поражённого врага ===
-            if (count > 0) {
-                float healAmount = Math.min(count * HEALTH_PER_KILL, MAX_HARVEST_HEAL);
-                float newHealth = Math.min(player.getHealth() + healAmount, player.getMaxHealth());
-                player.setHealth(newHealth);
-
-                LOGGER.info("Devil Totem harvested {} enemies, healed player for {}",
-                        count, healAmount);
-            }
-
-            LOGGER.info("Devil Totem hit {} entities for {}", count, player.getName().getString());
+            victims++;
         }
+
+        // heal() сам ограничивает здоровье максимумом игрока.
+        float heal = Math.min(victims * HEALTH_PER_VICTIM, MAX_HARVEST_HEAL);
+        if (heal > 0.0F) {
+            player.heal(heal);
+        }
+
+        LOGGER.debug("Devil Totem: harvested {} enemies, healed {} HP for {}",
+                victims, heal, player.getName().getString());
+    }
+
+    @Override
+    protected List<Component> effectTooltip() {
+        return List.of(
+                Component.translatable("tooltip.totemplus.devil_totem.buffs")
+                        .withStyle(ChatFormatting.GRAY),
+                Component.translatable("tooltip.totemplus.devil_totem.harvest",
+                                (int) (HARVEST_DAMAGE / 2.0F), (int) HARVEST_RADIUS)
+                        .withStyle(ChatFormatting.GRAY)
+        );
     }
 }

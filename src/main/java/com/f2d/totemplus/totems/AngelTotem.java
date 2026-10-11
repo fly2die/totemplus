@@ -1,78 +1,64 @@
 package com.f2d.totemplus.totems;
 
+import net.minecraft.ChatFormatting;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.monster.Monster;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.phys.AABB;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
+/** Ангельский тотем: лечит больше всех, усиливает и поднимает врагов в воздух. */
 public class AngelTotem extends BaseTotem {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger("totemplus/AngelTotem");
-    private static final float HEALTH_ON_ACTIVATE = 10.0f;
+    /** 10 HP = 5 сердец. */
+    private static final float HEALTH_ON_ACTIVATE = 10.0F;
+
+    private static final int BUFF_DURATION = 300;
+    private static final int REGENERATION_DURATION = 400;
+
     private static final double LEVITATION_RADIUS = 8.0;
     private static final int LEVITATION_DURATION = 100;
     private static final int LEVITATION_AMPLIFIER = 1;
 
     public AngelTotem(Properties properties) {
-        super(properties);
+        super(properties, HEALTH_ON_ACTIVATE);
     }
 
     @Override
-    protected float getHealthOnActivate() {
-        return HEALTH_ON_ACTIVATE;
-    }
+    protected void onActivate(ServerPlayer player, ServerLevel level) {
+        player.addEffect(new MobEffectInstance(MobEffects.STRENGTH, BUFF_DURATION, 1));
+        player.addEffect(new MobEffectInstance(MobEffects.SPEED, BUFF_DURATION, 1));
+        player.addEffect(new MobEffectInstance(MobEffects.REGENERATION, REGENERATION_DURATION, 0));
 
-    @Override
-    protected void onActivate(Player player, ItemStack stack) {
-        LOGGER.info("onActivate START for {}", player.getName().getString());
+        int levitated = 0;
+        for (LivingEntity enemy : enemiesAround(player, level, LEVITATION_RADIUS)) {
+            enemy.addEffect(new MobEffectInstance(MobEffects.LEVITATION, LEVITATION_DURATION, LEVITATION_AMPLIFIER));
 
-        // Баффы игроку
-        player.addEffect(new MobEffectInstance(MobEffects.STRENGTH, 300, 1));
-        player.addEffect(new MobEffectInstance(MobEffects.SPEED, 300, 1));
-        player.addEffect(new MobEffectInstance(MobEffects.REGENERATION, 400, 0));
-
-        if (player.level() instanceof ServerLevel serverLevel) {
-            // Кубическая зона вокруг игрока по координатам
-            var pos = player.position();
-            AABB area = new AABB(
-                    pos.x - LEVITATION_RADIUS, pos.y - LEVITATION_RADIUS, pos.z - LEVITATION_RADIUS,
-                    pos.x + LEVITATION_RADIUS, pos.y + LEVITATION_RADIUS, pos.z + LEVITATION_RADIUS
+            level.sendParticles(
+                    ParticleTypes.END_ROD,
+                    enemy.getX(),
+                    enemy.getY() + enemy.getBbHeight() * 0.5,
+                    enemy.getZ(),
+                    20, 0.3, 0.5, 0.3, 0.05
             );
-
-            // Ищем ВСЕХ живых сущностей, кроме игрока
-            List<LivingEntity> entities = serverLevel.getEntitiesOfClass(LivingEntity.class, area);
-            int count = 0;
-
-            for (LivingEntity entity : entities) {
-                if (entity instanceof Player) continue; // пропускаем игроков
-
-                entity.addEffect(new MobEffectInstance(
-                        MobEffects.LEVITATION,
-                        LEVITATION_DURATION,
-                        LEVITATION_AMPLIFIER
-                ));
-
-                serverLevel.sendParticles(
-                        ParticleTypes.END_ROD,
-                        entity.getX(),
-                        entity.getY() + entity.getBbHeight() * 0.5,
-                        entity.getZ(),
-                        20, 0.3, 0.5, 0.3, 0.05
-                );
-
-                count++;
-            }
-
-            LOGGER.info("Levitated {} entities for {}", count, player.getName().getString());
+            levitated++;
         }
+
+        LOGGER.debug("Angel Totem: levitated {} enemies for {}",
+                levitated, player.getName().getString());
+    }
+
+    @Override
+    protected List<Component> effectTooltip() {
+        return List.of(
+                Component.translatable("tooltip.totemplus.angel_totem.buffs")
+                        .withStyle(ChatFormatting.GRAY),
+                Component.translatable("tooltip.totemplus.angel_totem.levitation", (int) LEVITATION_RADIUS)
+                        .withStyle(ChatFormatting.GRAY)
+        );
     }
 }

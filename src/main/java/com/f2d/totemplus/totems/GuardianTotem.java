@@ -1,87 +1,71 @@
 package com.f2d.totemplus.totems;
 
+import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.effect.MobEffectCategory;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.phys.AABB;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
+/** Тотем стража: сильная защита, снятие негативных эффектов и слабость на врагов вокруг. */
 public class GuardianTotem extends BaseTotem {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger("totemplus/GuardianTotem");
+    /** 12 HP = 6 сердец. */
+    private static final float HEALTH_ON_ACTIVATE = 12.0F;
 
-    // Сколько здоровья восстанавливается при активации (20.0 = 10 сердец)
-    private static final float HEALTH_ON_ACTIVATE = 12.0f;
+    private static final int BUFF_DURATION = 400;
+    private static final int ABSORPTION_DURATION = 600;
 
-    // Радиус действия слабости на врагов (в блоках)
     private static final double WEAKNESS_RADIUS = 10.0;
+    private static final int WEAKNESS_DURATION = 200;
 
     public GuardianTotem(Properties properties) {
-        super(properties);
+        super(properties, HEALTH_ON_ACTIVATE);
     }
 
     @Override
-    protected float getHealthOnActivate() {
-        return HEALTH_ON_ACTIVATE;
-    }
+    protected void onActivate(ServerPlayer player, ServerLevel level) {
+        player.addEffect(new MobEffectInstance(MobEffects.RESISTANCE, BUFF_DURATION, 2));
+        player.addEffect(new MobEffectInstance(MobEffects.ABSORPTION, ABSORPTION_DURATION, 3));
+        player.addEffect(new MobEffectInstance(MobEffects.REGENERATION, BUFF_DURATION, 1));
 
-    @Override
-    protected void onActivate(Player player, ItemStack stack) {
-        LOGGER.info("Guardian Totem onActivate START for {}", player.getName().getString());
+        clearHarmfulEffects(player);
 
-        // === 1. Мощные защитные баффы ===
-        // Сопротивление III на 20 секунд (400 тиков) — сильно снижает урон
-        player.addEffect(new MobEffectInstance(MobEffects.RESISTANCE, 400, 2));
-
-        // Поглощение IV на 30 секунд (600 тиков) — золотые сердца сверху
-        player.addEffect(new MobEffectInstance(MobEffects.ABSORPTION, 600, 3));
-
-        // Регенерация II на 20 секунд (400 тиков)
-        player.addEffect(new MobEffectInstance(MobEffects.REGENERATION, 400, 1));
-
-        // === 2. Снятие всех негативных эффектов ===
-        player.removeEffect(MobEffects.POISON);
-        player.removeEffect(MobEffects.WITHER);
-        player.removeEffect(MobEffects.WEAKNESS);
-        player.removeEffect(MobEffects.SLOWNESS);
-        player.removeEffect(MobEffects.HUNGER);
-        player.removeEffect(MobEffects.NAUSEA);
-        player.removeEffect(MobEffects.BLINDNESS);
-        player.removeEffect(MobEffects.DARKNESS);
-        player.removeEffect(MobEffects.UNLUCK);
-        player.removeEffect(MobEffects.MINING_FATIGUE);
-        player.removeEffect(MobEffects.LEVITATION);
-
-        // === 3. Слабость всем врагам вокруг ===
-        if (player.level() instanceof ServerLevel serverLevel) {
-            var pos = player.position();
-            AABB area = new AABB(
-                    pos.x - WEAKNESS_RADIUS, pos.y - WEAKNESS_RADIUS, pos.z - WEAKNESS_RADIUS,
-                    pos.x + WEAKNESS_RADIUS, pos.y + WEAKNESS_RADIUS, pos.z + WEAKNESS_RADIUS
-            );
-
-            List<LivingEntity> entities = serverLevel.getEntitiesOfClass(LivingEntity.class, area);
-            int count = 0;
-
-            for (LivingEntity entity : entities) {
-                if (entity instanceof Player) continue;
-
-                // Слабость II на 10 секунд (200 тиков)
-                entity.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, 200, 1));
-
-                count++;
-            }
-
-            LOGGER.info("Guardian Totem weakened {} enemies for {}",
-                    count, player.getName().getString());
+        int weakened = 0;
+        for (LivingEntity enemy : enemiesAround(player, level, WEAKNESS_RADIUS)) {
+            enemy.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, WEAKNESS_DURATION, 1));
+            weakened++;
         }
 
-        LOGGER.info("Guardian Totem activated for {}!", player.getName().getString());
+        LOGGER.debug("Guardian Totem: weakened {} enemies for {}",
+                weakened, player.getName().getString());
+    }
+
+    /**
+     * Снимает все вредные эффекты за один проход. Ручной список пришлось бы дополнять
+     * при каждом обновлении игры: новые вредные эффекты в нём сами не появятся.
+     */
+    private static void clearHarmfulEffects(ServerPlayer player) {
+        player.getActiveEffects().stream()
+                .map(MobEffectInstance::getEffect)
+                .filter(effect -> effect.value().getCategory() == MobEffectCategory.HARMFUL)
+                .toList()
+                .forEach(effect -> player.removeEffect(effect));
+    }
+
+    @Override
+    protected List<Component> effectTooltip() {
+        return List.of(
+                Component.translatable("tooltip.totemplus.guardian_totem.buffs")
+                        .withStyle(ChatFormatting.GRAY),
+                Component.translatable("tooltip.totemplus.guardian_totem.cleanse")
+                        .withStyle(ChatFormatting.GRAY),
+                Component.translatable("tooltip.totemplus.guardian_totem.weakness", (int) WEAKNESS_RADIUS)
+                        .withStyle(ChatFormatting.GRAY)
+        );
     }
 }

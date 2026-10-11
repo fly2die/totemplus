@@ -3,5 +3,23 @@
   "item.totemplus.devil_totem": "Дьявольский тотем",
   "item.totemplus.storm_totem": "Штормовой тотем",
   "item.totemplus.berserker_totem": "Тотем берсерка",
-  "item.totemplus.guardian_totem": "Тотем стража"
+  "item.totemplus.guardian_totem": "Тотем стража",
+
+  "tooltip.totemplus.activation": "Активируется при смертельном уроне",
+  "tooltip.totemplus.heal": "Восстанавливает до %s сердец",
+
+  "tooltip.totemplus.angel_totem.buffs": "Сила II и Скорость II (15 сек), Регенерация I (20 сек)",
+  "tooltip.totemplus.angel_totem.levitation": "Левитация на враждебных мобов в радиусе %s блоков",
+
+  "tooltip.totemplus.devil_totem.buffs": "Сила II и Скорость II (15 сек)",
+  "tooltip.totemplus.devil_totem.harvest": "Кровавая жатва: %s урона враждебным мобам в радиусе %s блоков, лечит за каждого задетого",
+
+  "tooltip.totemplus.storm_totem.buffs": "Скорость III, Регенерация I, Сопротивление I, Спешка I (15 сек)",
+  "tooltip.totemplus.storm_totem.lightning": "Молнии бьют до %s враждебных мобов в радиусе %s блоков",
+
+  "tooltip.totemplus.berserker_totem.buffs": "Сила IV, Скорость III, Спешка III, Сопротивление I (15 сек)",
+
+  "tooltip.totemplus.guardian_totem.buffs": "Сопротивление III и Регенерация II (20 сек), Поглощение IV (30 сек)",
+  "tooltip.totemplus.guardian_totem.cleanse": "Снимает все негативные эффекты",
+  "tooltip.totemplus.guardian_totem.weakness": "Слабость II на враждебных мобов в радиусе %s блоков"
 }

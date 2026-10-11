@@ -3,5 +3,23 @@
   "item.totemplus.devil_totem": "Devil Totem",
   "item.totemplus.storm_totem": "Storm Totem",
   "item.totemplus.berserker_totem": "Berserker Totem",
-  "item.totemplus.guardian_totem": "Guardian Totem"
+  "item.totemplus.guardian_totem": "Guardian Totem",
+
+  "tooltip.totemplus.activation": "Activates on lethal damage",
+  "tooltip.totemplus.heal": "Restores up to %s hearts",
+
+  "tooltip.totemplus.angel_totem.buffs": "Strength II + Speed II (15s), Regeneration I (20s)",
+  "tooltip.totemplus.angel_totem.levitation": "Levitation on hostile mobs within %s blocks",
+
+  "tooltip.totemplus.devil_totem.buffs": "Strength II + Speed II (15s)",
+  "tooltip.totemplus.devil_totem.harvest": "Blood harvest: %s damage to hostile mobs within %s blocks, heals for every victim",
+
+  "tooltip.totemplus.storm_totem.buffs": "Speed III, Regeneration I, Resistance I, Haste I (15s)",
+  "tooltip.totemplus.storm_totem.lightning": "Lightning strikes up to %s hostile mobs within %s blocks",
+
+  "tooltip.totemplus.berserker_totem.buffs": "Strength IV, Speed III, Haste III, Resistance I (15s)",
+
+  "tooltip.totemplus.guardian_totem.buffs": "Resistance III + Regeneration II (20s), Absorption IV (30s)",
+  "tooltip.totemplus.guardian_totem.cleanse": "Removes all harmful effects",
+  "tooltip.totemplus.guardian_totem.weakness": "Weakness II on hostile mobs within %s blocks"
 }

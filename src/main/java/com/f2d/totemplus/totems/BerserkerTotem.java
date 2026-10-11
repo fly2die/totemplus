@@ -1,72 +1,58 @@
 package com.f2d.totemplus.totems;
 
+import net.minecraft.ChatFormatting;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+import java.util.List;
+
+/** Тотем берсерка: лечит меньше всех, зато даёт самую сильную атаку. */
 public class BerserkerTotem extends BaseTotem {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger("totemplus/BerserkerTotem");
+    /** 4 HP = 2 сердца. */
+    private static final float HEALTH_ON_ACTIVATE = 4.0F;
 
-    // Сколько здоровья восстанавливается при активации (4.0 = 2 сердца)
-    private static final float HEALTH_ON_ACTIVATE = 4.0f;
+    private static final int BUFF_DURATION = 300;
 
     public BerserkerTotem(Properties properties) {
-        super(properties);
+        super(properties, HEALTH_ON_ACTIVATE);
     }
 
     @Override
-    protected float getHealthOnActivate() {
-        return HEALTH_ON_ACTIVATE;
+    protected void onActivate(ServerPlayer player, ServerLevel level) {
+        player.addEffect(new MobEffectInstance(MobEffects.STRENGTH, BUFF_DURATION, 3));
+        player.addEffect(new MobEffectInstance(MobEffects.SPEED, BUFF_DURATION, 2));
+        player.addEffect(new MobEffectInstance(MobEffects.HASTE, BUFF_DURATION, 2));
+        player.addEffect(new MobEffectInstance(MobEffects.RESISTANCE, BUFF_DURATION, 0));
+
+        // Красные частицы — ярость, пламя — агрессивный вид.
+        level.sendParticles(
+                ParticleTypes.DAMAGE_INDICATOR,
+                player.getX(),
+                player.getY() + 1.0,
+                player.getZ(),
+                30, 0.5, 0.5, 0.5, 0.1
+        );
+        level.sendParticles(
+                ParticleTypes.FLAME,
+                player.getX(),
+                player.getY() + 1.0,
+                player.getZ(),
+                20, 0.4, 0.6, 0.4, 0.02
+        );
+
+        LOGGER.debug("Berserker Totem: activated for {}", player.getName().getString());
     }
 
     @Override
-    protected void onActivate(Player player, ItemStack stack) {
-        LOGGER.info("Berserker Totem onActivate START for {}", player.getName().getString());
-
-        // === Баффы самому игроку ===
-        // Сила IV на 15 секунд (300 тиков) — очень мощно
-        player.addEffect(new MobEffectInstance(MobEffects.STRENGTH, 300, 3));
-
-        // Скорость III на 15 секунд
-        player.addEffect(new MobEffectInstance(MobEffects.SPEED, 300, 2));
-
-        // Спешка III на 15 секунд (быстрее бьёшь, копаешь)
-        player.addEffect(new MobEffectInstance(MobEffects.HASTE, 300, 2));
-
-        // Сопротивление I на 15 секунд (чтобы компенсировать малое HP)
-        player.addEffect(new MobEffectInstance(MobEffects.RESISTANCE, 300, 0));
-
-        // === Визуальный эффект ===
-        if (player.level() instanceof ServerLevel serverLevel) {
-            // Красные частицы вокруг игрока — ярость
-            serverLevel.sendParticles(
-                    ParticleTypes.DAMAGE_INDICATOR,
-                    player.getX(),
-                    player.getY() + 1.0,
-                    player.getZ(),
-                    30,
-                    0.5, 0.5, 0.5,
-                    0.1
-            );
-
-            // Дополнительно — пламя для агрессивного вида
-            serverLevel.sendParticles(
-                    ParticleTypes.FLAME,
-                    player.getX(),
-                    player.getY() + 1.0,
-                    player.getZ(),
-                    20,
-                    0.4, 0.6, 0.4,
-                    0.02
-            );
-        }
-
-        LOGGER.info("Berserker Totem activated for {}!", player.getName().getString());
+    protected List<Component> effectTooltip() {
+        return List.of(
+                Component.translatable("tooltip.totemplus.berserker_totem.buffs")
+                        .withStyle(ChatFormatting.GRAY)
+        );
     }
 }

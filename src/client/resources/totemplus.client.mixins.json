@@ -1,14 +1,9 @@
 {
-	"required": true,
+	"required": false,
 	"package": "com.f2d.totemplus.client.mixin",
 	"compatibilityLevel": "JAVA_25",
-	"client": [
-		"GameRendererMixin"
-	],
+	"client": [],
 	"injectors": {
-		"defaultRequire": 1
-	},
-	"overwrites": {
-		"requireAnnotations": true
+		"defaultRequire": 0
 	}
 }
